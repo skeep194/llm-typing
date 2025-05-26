@@ -7,11 +7,11 @@ import {getLLMResponse} from '../api/gemini'
 function App() {
   const [count, setCount] = useState(0)
   const [response, setResponse] = useState('');
-  const [typing , settyping] = useState('')
+  const [typing , setTyping] = useState('')
   useEffect(() => {
     const bootstrap = async () => {
       setResponse(await getLLMResponse('오픈소스에 대해 알려줘'))
-      settyping(await getLLMResponse("타이핑 할 문장 알려줘"))
+      setTyping(await getLLMResponse("타이핑 할 문장 알려줘"))
     }
     bootstrap();
     
