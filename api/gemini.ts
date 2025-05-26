@@ -2,10 +2,10 @@ import { GoogleGenAI } from "@google/genai";
 
 const ai = new GoogleGenAI({ apiKey: "" });
 
-export async function getLLMResponse(prompt: string) {
+export async function getLLMResponse(prompt: string, model: string) {
   const response = await ai.models.generateContent({
-    model: "gemini-2.0-flash",
+    model: model,
     contents: prompt,
   });
-  return response.text!
+  return response.text!;
 }
