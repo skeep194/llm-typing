@@ -1,16 +1,15 @@
+import Provider from "./Provider";
+import Router from "./Router";
+import { Box } from "@chakra-ui/react";
 
-import "./App.css";
-
-import TestTyping from "./page/TestTyping";
-
-function App() {
-
-
+const App = () => {
   return (
-    <>
-      <TestTyping />
-    </>
+    <Provider>
+      <Box w="100vw" h="100vh">
+        <Router />
+      </Box>
+    </Provider>
   );
-}
+};
 
 export default App;
