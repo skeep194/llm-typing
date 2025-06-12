@@ -30,7 +30,6 @@ export default function Main() {
         const newValue = e.target.value;
         setInputValue(newValue);
 
-        // 프리픽스 글자가 입력되면 해당 글자를 지움
         if (prefix && newValue.length > 0) {
             const lastChar = newValue[newValue.length - 1];
             if (lastChar === prefix[0]) {
