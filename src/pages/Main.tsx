@@ -21,10 +21,38 @@ export default function Main() {
     const [typedHistory, setTypedHistory] = useState<TypedWord[]>([]);
     const [prefix, setPrefix] = useState("type");
     const inputRef = useRef<HTMLInputElement>(null);
-
+    const [words, setWords] = useState<string[]>([]); // feature add
+    /*
     useEffect(() => {
         inputRef.current?.focus();
     }, [currentWordIndex]);
+    */
+
+    useEffect(() => {           //feature add
+    fetch("http://localhost:5050/api/words")
+        .then((res) => res.json())
+        .then((data) => setWords(data))
+        .catch((err) => console.error("Failed to fetch words:", err));
+    }, []);
+
+const loadNewWords = () => {            //add 새로운 단어 불러오기
+    fetch("http://localhost:5050/api/words")
+    .then((res) => res.json())
+    .then((data) => {
+      setWords(data);
+      setCurrentWordIndex(0);
+      setTypedHistory([]);
+      setInputValue("");
+      setPrefix("type");
+    })
+    .catch((err) => console.error("Failed to fetch words:", err));
+};
+
+
+
+useEffect(() => {
+  loadNewWords();
+}, []);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
@@ -39,15 +67,28 @@ export default function Main() {
         }
     };
 
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
-        if (e.key === " " || e.key === "Enter") {
-            e.preventDefault();
-            const correct = inputValue === WORDS[currentWordIndex];
-            setTypedHistory([...typedHistory, { word: WORDS[currentWordIndex], typed: inputValue, correct }]);
-            setCurrentWordIndex(currentWordIndex + 1);
-            setInputValue("");
-        }
-    };
+const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  if (e.key === " " || e.key === "Enter") {
+    e.preventDefault();
+    const correct = inputValue === words[currentWordIndex];
+    const updatedHistory = [
+      ...typedHistory,
+      { word: words[currentWordIndex], typed: inputValue, correct },
+    ];
+    setTypedHistory(updatedHistory);
+    setInputValue("");
+
+    if (currentWordIndex + 1 >= words.length) {
+      // 🔁 모든 단어 입력 완료 → 새 게임 시작
+      setTimeout(() => {
+        loadNewWords(); // 0.5초 후 새 게임 시작
+      }, 500);
+    } else {
+      setCurrentWordIndex(currentWordIndex + 1);
+    }
+  }
+};
+
 
     return (
         <Center w="100%" h="100%">
@@ -59,7 +100,7 @@ export default function Main() {
                 </Center>
 
                 <Box fontSize="xl" lineHeight="relaxed" maxW="4xl" mx="auto" mb={8}>
-                    {WORDS.map((word, i) => {
+                    {words.map((word, i) => {
                         const typed = typedHistory[i];
                         const isActive = i === currentWordIndex;
                         let color = "gray.500";
