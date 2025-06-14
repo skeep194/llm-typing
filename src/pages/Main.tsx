@@ -2,7 +2,6 @@ import { GoogleGenAI, Type } from "@google/genai";
 import { Box, Text, Input, Center, Flex } from "@chakra-ui/react";
 import { useState, useRef, useEffect } from "react";
 
-let WORDS: string[] = [];
 interface TypedWord {
   word: string;
   typed: string;
@@ -36,7 +35,7 @@ async function getRandomWordsFromGemini() {
       },
     },
   });
-  WORDS = JSON.parse(result.text!)[0].WORDS;
+  return JSON.parse(result.text!)[0].WORDS;
 }
 
 interface TypedWord {
@@ -51,7 +50,12 @@ export default function Main() {
   const [typedHistory, setTypedHistory] = useState<TypedWord[]>([]);
   const [prefix, setPrefix] = useState("type");
   const inputRef = useRef<HTMLInputElement>(null);
-  getRandomWordsFromGemini();
+  const [words, setWords] = useState<string[]>([]);
+  useEffect(() => {
+    getRandomWordsFromGemini().then((words) => {
+      setWords(words);
+    });
+  }, []);
   useEffect(() => {
     inputRef.current?.focus();
   }, [currentWordIndex]);
@@ -72,10 +76,10 @@ export default function Main() {
   const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
-      const correct = inputValue === WORDS[currentWordIndex];
+      const correct = inputValue === words[currentWordIndex];
       setTypedHistory([
         ...typedHistory,
-        { word: WORDS[currentWordIndex], typed: inputValue, correct },
+        { word: words[currentWordIndex], typed: inputValue, correct },
       ]);
       setCurrentWordIndex(currentWordIndex + 1);
       setInputValue("");
@@ -96,7 +100,7 @@ export default function Main() {
         </Center>
 
         <Box fontSize="xl" lineHeight="relaxed" maxW="4xl" mx="auto" mb={8}>
-          {WORDS.map((word, i) => {
+          {words.map((word, i) => {
             const typed = typedHistory[i];
             const isActive = i === currentWordIndex;
             let color = "gray.500";
