@@ -22,6 +22,8 @@ export default function Main() {
     const [prefix, setPrefix] = useState("type");
     const inputRef = useRef<HTMLInputElement>(null);
 
+    const [startTime, setStartTime] = useState<number | null>(null);
+
     useEffect(() => {
         inputRef.current?.focus();
     }, [currentWordIndex]);
@@ -29,6 +31,10 @@ export default function Main() {
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const newValue = e.target.value;
         setInputValue(newValue);
+
+        if (!startTime) {
+            setStartTime(Date.now());
+        }
 
         if (prefix && newValue.length > 0) {
             const lastChar = newValue[newValue.length - 1];
@@ -42,12 +48,32 @@ export default function Main() {
     const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
         if (e.key === " " || e.key === "Enter") {
             e.preventDefault();
+
             const correct = inputValue === WORDS[currentWordIndex];
-            setTypedHistory([...typedHistory, { word: WORDS[currentWordIndex], typed: inputValue, correct }]);
-            setCurrentWordIndex(currentWordIndex + 1);
+            setTypedHistory([
+                ...typedHistory,
+                { word: WORDS[currentWordIndex], typed: inputValue, correct },
+            ]);
             setInputValue("");
+            setCurrentWordIndex(currentWordIndex + 1);
         }
     };
+
+    const getStats = () => {
+        if (!startTime || typedHistory.length === 0) return null;
+
+        const now = Date.now();
+        const seconds = (now - startTime) / 1000;
+        const correctCount = typedHistory.filter((w) => w.correct).length;
+        const totalCount = typedHistory.length;
+
+        const accuracy = totalCount === 0 ? "0.0" : ((correctCount / totalCount) * 100).toFixed(1);
+        const wpm = seconds === 0 ? "0.0" : ((correctCount / seconds) * 60).toFixed(1);
+
+        return { accuracy, wpm };
+    };
+
+    const stats = getStats();
 
     return (
         <Center w="100%" h="100%">
@@ -87,7 +113,15 @@ export default function Main() {
                     _focus={{ outline: "none" }}
                     marginBottom={8}
                 />
+
+                {stats && (
+                    <Center>
+                        <Text fontSize="xl" fontWeight="semibold" color="green.300">
+                            🎯 정확도: {stats.accuracy}% | ⌨️ WPM: {stats.wpm}
+                        </Text>
+                    </Center>
+                )}
             </Flex>
         </Center>
     );
-} 
+}
