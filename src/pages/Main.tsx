@@ -45,12 +45,13 @@ interface TypedWord {
 }
 
 export default function Main() {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+    const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [typedHistory, setTypedHistory] = useState<TypedWord[]>([]);
   const [prefix, setPrefix] = useState("type");
   const inputRef = useRef<HTMLInputElement>(null);
   const [words, setWords] = useState<string[]>([]);
+  const [isFinished, setIsFinished] = useState(false);
 
   const [startTime, setStartTime] = useState<number | null>(null);
   useEffect(() => {
@@ -83,14 +84,26 @@ export default function Main() {
     if (e.key === " " || e.key === "Enter") {
       e.preventDefault();
       const correct = inputValue === words[currentWordIndex];
-      setTypedHistory([
-        ...typedHistory,
+
+      setTypedHistory((prev) => [
+        ...prev,
         { word: words[currentWordIndex], typed: inputValue, correct },
       ]);
+
       setInputValue("");
-      setCurrentWordIndex(currentWordIndex + 1);
+      const nextIndex = currentWordIndex + 1;
+
+      if (nextIndex >= words.length) {
+        setIsFinished(true); // ✅ 완료 상태로 변경
+        setTimeout(() => {
+          resetTest();
+        }, 5000); // ✅ 5초 뒤 재시작
+      } else {
+        setCurrentWordIndex(nextIndex);
+      }
     }
   };
+
   const getStats = () => {
     if (!startTime || typedHistory.length === 0) return null;
 
@@ -105,6 +118,18 @@ export default function Main() {
       seconds === 0 ? "0.0" : ((correctCount / seconds) * 60).toFixed(1);
 
     return { accuracy, wpm };
+  };
+
+   // ✅ 테스트 초기화 함수
+   const resetTest = async () => {
+    const newWords = await getRandomWordsFromGemini();
+    setWords(newWords);
+    setCurrentWordIndex(0);
+    setTypedHistory([]);
+    setInputValue("");
+    setStartTime(null);
+    setPrefix("type");
+    setIsFinished(false); // 완료 상태 해제
   };
 
   const stats = getStats();
@@ -150,12 +175,14 @@ export default function Main() {
           fontSize="xl"
           _focus={{ outline: "none" }}
           marginBottom={8}
+          disabled={isFinished}
         />
 
         {stats && (
           <Center>
             <Text fontSize="xl" fontWeight="semibold" color="green.300">
               🎯 정확도: {stats.accuracy}% | ⌨️ WPM: {stats.wpm}
+              {isFinished && " | 🔄 5초 뒤 다시 시작됩니다..."}
             </Text>
           </Center>
         )}
@@ -163,4 +190,3 @@ export default function Main() {
     </Center>
   );
 }
-
