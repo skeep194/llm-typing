@@ -45,7 +45,7 @@ interface TypedWord {
 }
 
 export default function Main() {
-  const [currentWordIndex, setCurrentWordIndex] = useState(0);
+    const [currentWordIndex, setCurrentWordIndex] = useState(0);
   const [inputValue, setInputValue] = useState("");
   const [typedHistory, setTypedHistory] = useState<TypedWord[]>([]);
   const [prefix, setPrefix] = useState("type");
